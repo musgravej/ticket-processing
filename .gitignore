@@ -1,0 +1,6 @@
+config.ini
+.idea
+/venv
+/art_path
+/target
+*.db
