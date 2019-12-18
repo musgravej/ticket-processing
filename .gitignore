@@ -4,3 +4,4 @@ config.ini
 /art_path
 /target
 *.db
+*.odt
