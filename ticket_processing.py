@@ -12,6 +12,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
 from email import encoders
 import smtplib
+import time
 
 
 class Email:
@@ -104,7 +105,10 @@ class Email:
         html = ("<html> <head> <style> td, th {{ border: 1px solid #dddddd; text-align: left; padding: 8px;}}"
                 "</style> </head> <body> <p>The following portals {fle_format} been processed for web orders:<br> "
                 "</p> <table width: 100%;> <tr> <th>Portal</th> <th>Orders</th> </tr> "
-                "{table_data} </table> </body> </html>".format(table_data=table_data, fle_format=fle_format))
+                "{table_data} </table> </body> "
+                "<br> <p> {elapsed_time}</html>".format(table_data=table_data,
+                                                        fle_format=fle_format,
+                                                        elapsed_time=gbl.elapsed_time()))
 
         subject = f"Web Order Summary for processing {pdt}"
 
@@ -532,6 +536,13 @@ class GlobalVar:
         self.art_files = None
         self.duplicated_files = []
         self.process_dt = datetime.datetime.now()
+        self.start_time = time.time()
+
+    def elapsed_time(self):
+        seconds = time.time() - self.start_time
+        minutes, sec = divmod(seconds, 60)
+        hour, minutes = divmod(minutes, 60)
+        return "%d:%02d:%02d" % (hour, minutes, sec)
 
     def initialize_processing(self):
         self.connect_db()
@@ -656,6 +667,7 @@ def main():
     gbl.initialize_processing()
     fpr.set_report_printer()
     rpt.get_report_counts()
+
     fmv.move_farm_bureau_art()
     fmv.move_medica_art()
     fmv.move_willis_art()

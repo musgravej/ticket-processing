@@ -5,3 +5,4 @@ config.ini
 /target
 *.db
 *.odt
+*.bat
