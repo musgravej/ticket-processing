@@ -105,10 +105,10 @@ class Email:
         html = ("<html> <head> <style> td, th {{ border: 1px solid #dddddd; text-align: left; padding: 8px;}}"
                 "</style> </head> <body> <p>The following portals {fle_format} been processed for web orders:<br> "
                 "</p> <table width: 100%;> <tr> <th>Portal</th> <th>Orders</th> </tr> "
-                "{table_data} </table> </body> "
-                "<br> <p> {elapsed_time}</html>".format(table_data=table_data,
-                                                        fle_format=fle_format,
-                                                        elapsed_time=gbl.elapsed_time()))
+                "{table_data} </table> <br> <p> {elapsed_time} </body> "
+                "</html>".format(table_data=table_data,
+                                 fle_format=fle_format,
+                                 elapsed_time=gbl.elapsed_time()))
 
         subject = f"Web Order Summary for processing {pdt}"
 
