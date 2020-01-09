@@ -28,6 +28,57 @@ class Email:
         self.email_password = config['EMAIL']['email_password']
         self.email_server = config['EMAIL']['email_server']
 
+        self.text_report_save_path = os.path.join("\\\\JTSRV4", "Data", "Customer Files",
+                                                  "In Progress", "01-Web Order Art", "daily_reports")
+
+    def write_email_text(self):
+        pdt = datetime.datetime.strftime(gbl.process_dt, "%Y-%m-%d")
+        file_path = os.path.join(self.text_report_save_path, f"web_processing_{pdt}.txt")
+        with open(file_path, 'w', newline="") as s:
+            table_data = ""
+            fle_format = "file has" if len(rpt.portal_counts) == 1 else "files have"
+
+            write_text = ("Web Order Summary for processing {pdt}\n"
+                          "The following portals {fle_format} "
+                          "been processed for web orders:\n".format(pdt=pdt, fle_format=fle_format))
+
+            longest_portal = 0
+            for portal_name, records in rpt.portal_counts.items():
+                longest_portal = max(longest_portal, len(portal_name))
+
+            write_text += ("{fld1:<{fld1w}}{fld2:>{fld2w}}\n".format(fld1="Portal", fld2="Orders",
+                                                                     fld1w=longest_portal + 2,
+                                                                     fld2w=8,))
+
+            for portal_name, records in rpt.portal_counts.items():
+                write_text += ("{fld1:<{fld1w}}{fld2:>{fld2w}}\n".format(fld1=portal_name, fld2=records,
+                                                                         fld1w=longest_portal + 2,
+                                                                         fld2w=8,))
+
+            s.writelines(write_text)
+
+    def write_alert_text(self):
+        pdt = datetime.datetime.strftime(gbl.process_dt, "%Y-%m-%d")
+        file_path = os.path.join(self.text_report_save_path, f"web_processing_alerts_{pdt}.txt")
+        with open(file_path, 'w', newline="") as s:
+            write_text = ""
+            if fmv.error_messages:
+                fle_format = "error has" if len(fmv.error_messages) == 1 else "errors have"
+                write_text += f"The following {fle_format} occurred while processing web orders {pdt}:\n"
+
+                for msg in fmv.error_messages:
+                    write_text += f"{msg}\n"
+
+            if gbl.duplicated_files:
+                fle_format = "file has" if len(gbl.duplicated_files) == 1 else "files have"
+
+                write_text += f"\nThe following {fle_format} been updated for web orders:\n"
+
+                for file_name, file_date in gbl.duplicated_files:
+                    write_text += f"{file_date}\t{file_name}\n"
+
+            s.writelines(write_text)
+
     def send_alert_email(self):
         port = 587
         smtp_server = self.email_server
@@ -314,7 +365,7 @@ class FileMover:
         dt = datetime.datetime
         save_path = os.path.join(self.save_base_path, "FB Monthly Web Order")
 
-        file_search = re.compile("FB[\s\S]*.pdf")
+        file_search = re.compile("FB[0-9]{6}_[\s\S]*.pdf")
         file_match = (list(filter(file_search.match, gbl.art_files)))
 
         for fle in file_match:
@@ -677,11 +728,17 @@ def main():
 
     # send email if new files
     if len(gbl.report_files) > 0:
-        eml.send_message_email()
+        try:
+            eml.send_message_email()
+        except TimeoutError:
+            eml.write_email_text()
 
     # send email if errors
     if (len(fmv.error_messages) > 0) or (len(gbl.duplicated_files) > 0):
-        eml.send_alert_email()
+        try:
+            eml.send_alert_email()
+        except TimeoutError:
+            eml.write_alert_text()
 
     gbl.update_table_history()
     fpr.set_default_printer()
