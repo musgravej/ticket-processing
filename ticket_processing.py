@@ -80,7 +80,7 @@ class Email:
             s.writelines(write_text)
 
     def send_alert_email(self):
-        port = 587
+        port = 25
         smtp_server = self.email_server
         sender_email = self.email_user
         email_from = self.email_from
@@ -132,12 +132,12 @@ class Email:
 
         with smtplib.SMTP(smtp_server, port) as server:
             server.starttls()
-            server.login(sender_email, password)
+            # server.login(sender_email, password)
             server.sendmail(email_from, message["To"].split(","),
                             message.as_string())
 
     def send_message_email(self):
-        port = 587
+        port = 25
         smtp_server = self.email_server
         sender_email = self.email_user
         email_from = self.email_from
@@ -188,7 +188,7 @@ class Email:
 
         with smtplib.SMTP(smtp_server, port) as server:
             server.starttls()
-            server.login(sender_email, password)
+            # server.login(sender_email, password)
             server.sendmail(email_from, message["To"].split(",") + message["Cc"].split(","),
                             message.as_string())
 
