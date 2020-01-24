@@ -1,4 +1,4 @@
-config.ini
+*.ini
 .idea
 /venv
 /art_path
